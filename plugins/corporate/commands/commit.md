@@ -8,6 +8,6 @@ Steps:
    - Imperative mood: "Add X", "Fix Y", "Remove Z"
    - First line: 50 chars max
    - Body if needed: explain WHY not WHAT
-5. Include Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+5. Include Co-Authored-By: Arun Vaidhyanathan <arun.vaidhyanathan@citi.com>
 6. Run `git status` after to confirm clean state
 7. Do NOT push unless explicitly asked
