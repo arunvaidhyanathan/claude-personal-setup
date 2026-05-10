@@ -1,51 +1,81 @@
-# Global Claude Rules — Arun Vaidhyanathan
+# CLAUDE.md — 12-rule template
 
-## Identity & Context
-- Primary stack: Java (Spring Boot), Python (FastAPI), TypeScript (React)
-- DB: PostgreSQL + PGVector, jOOQ for query building
-- AI/ML: Gemini API for embeddings, Apache Tika for extraction
+These rules apply to every task in this project unless explicitly overridden.
+Bias: caution over speed on non-trivial work. Use judgment on trivial tasks.
 
-## Communication
-- Concise, no filler, no emojis unless asked
-- Reference code as `file:line`
-- Lead with action, not explanation
-- Short direct sentences over long explanations
+## Rule 1 — Think Before Coding
+State assumptions explicitly. If uncertain, ask rather than guess.
+Present multiple interpretations when ambiguity exists.
+Push back when a simpler approach exists.
+Stop when confused. Name what's unclear.
 
-## Code Rules
-- Read files before modifying — never assume structure
-- No over-engineering: minimum complexity for the current task
-- No premature abstractions: 3 similar lines > an abstraction
-- No docstrings/comments unless logic is non-obvious
-- No error handling for impossible scenarios
-- Validate only at system boundaries (user input, external APIs)
-- Never hardcode secrets or credentials
+## Rule 2 — Simplicity First
+Minimum code that solves the problem. Nothing speculative.
+No features beyond what was asked. No abstractions for single-use code.
+Test: would a senior engineer say this is overcomplicated? If yes, simplify.
 
-## Java / Spring Boot
-- Spring Boot conventions always
-- jOOQ for all complex SQL — never raw string concatenation
-- Liquibase for schema migrations
-- DTOs for all API boundaries
-- Async with @Async + CompletableFuture for parallel ops
+## Rule 3 — Surgical Changes
+Touch only what you must. Clean up only your own mess.
+Don't "improve" adjacent code, comments, or formatting.
+Don't refactor what isn't broken. Match existing style.
 
-## Python
-- FastAPI patterns, always use type hints
-- Pydantic models for request/response
-- Google GenAI SDK for Gemini
+## Rule 4 — Goal-Driven Execution
+Define success criteria. Loop until verified.
+Don't follow steps. Define success and iterate.
+Strong success criteria let you loop independently.
 
-## Git Protocol
-- NEVER push without explicit user request
-- NEVER force push main/master
-- NEVER skip hooks (--no-verify)
-- Stage specific files, not `git add .`
+## Rule 5 — Use the model only for judgment calls
+Use me for: classification, drafting, summarization, extraction.
+Do NOT use me for: routing, retries, deterministic transforms.
+If code can answer, code answers.
+
+## Rule 6 — Token budgets are not advisory
+Per-task: 4,000 tokens. Per-session: 30,000 tokens.
+If approaching budget, summarize and start fresh.
+Surface the breach. Do not silently overrun.
+
+## Rule 7 — Surface conflicts, don't average them
+If two patterns contradict, pick one (more recent / more tested).
+Explain why. Flag the other for cleanup.
+Don't blend conflicting patterns.
+
+## Rule 8 — Read before you write
+Before adding code, read exports, immediate callers, shared utilities.
+"Looks orthogonal" is dangerous. If unsure why code is structured a way, ask.
+
+## Rule 9 — Tests verify intent, not just behavior
+Tests must encode WHY behavior matters, not just WHAT it does.
+A test that can't fail when business logic changes is wrong.
+
+## Rule 10 — Checkpoint after every significant step
+Summarize what was done, what's verified, what's left.
+Don't continue from a state you can't describe back.
+If you lose track, stop and restate.
+
+## Rule 11 — Match the codebase's conventions, even if you disagree
+Conformance > taste inside the codebase.
+If you genuinely think a convention is harmful, surface it. Don't fork silently.
+
+## Rule 12 — Fail loud
+"Completed" is wrong if anything was skipped silently.
+"Tests pass" is wrong if any were skipped.
+Default to surfacing uncertainty, not hiding it.
+
+---
+
+## Personal Stack Addendum
+
+Owner: Arun Vaidhyanathan
+Primary: Java (Spring Boot), Python (FastAPI), TypeScript (React)
+DB: PostgreSQL + PGVector | Query: jOOQ | Migrations: Liquibase
+AI: Gemini API (embeddings) | Extraction: Apache Tika
+
+### Git
+- Never push without explicit request. Never force-push main/master.
+- Stage specific files — never `git add .`
 - Commit messages: imperative mood, present tense
 
-## Tool Preferences
-- Always use dedicated tools: Read, Edit, Grep, Glob (not cat/grep/find via Bash)
+### Tools
+- Use Read/Edit/Grep/Glob before Bash equivalents
 - Parallel tool calls when independent
-- Subagents for isolated tasks that pollute context
-
-## Security
-- No SQL injection (use jOOQ/parameterized queries)
-- No XSS (sanitize frontend outputs)
-- No command injection in shell scripts
-- Never log sensitive data
+- No emojis unless asked. Reference code as `file:line`.
