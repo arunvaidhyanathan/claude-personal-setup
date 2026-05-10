@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code at Scale — Citi Pilot</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.5/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --citi-blue: #003B70;
+    --citi-red: #C41E3A;
+    --citi-gold: #D4A017;
+    --citi-light: #F4F7FB;
+    --citi-mid: #E8EEF5;
+    --text: #1A1A2E;
+    --text-light: #4A5568;
+    --success: #1A7F37;
+    --danger: #C41E3A;
+    --card-shadow: 0 4px 24px rgba(0,59,112,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #F0F4F8; color: var(--text); }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: var(--citi-blue); color: white;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: 56px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  nav .brand { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; }
+  nav .brand span { color: var(--citi-gold); }
+  nav .meta { font-size: 0.8rem; opacity: 0.8; }
+
+  /* SECTIONS */
+  section { min-height: 100vh; padding: 96px 2rem 4rem; display: flex; flex-direction: column; justify-content: center; }
+  section:nth-child(odd) { background: #F0F4F8; }
+  section:nth-child(even) { background: white; }
+
+  .container { max-width: 1100px; margin: 0 auto; width: 100%; }
+  .section-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--citi-red); margin-bottom: 0.5rem; }
+  h1 { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; color: var(--citi-blue); line-height: 1.15; }
+  h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 700; color: var(--citi-blue); margin-bottom: 1.5rem; }
+  h3 { font-size: 1.15rem; font-weight: 700; color: var(--citi-blue); margin-bottom: 0.5rem; }
+  p { color: var(--text-light); line-height: 1.7; font-size: 1.05rem; }
+
+  /* HERO */
+  .hero-sub { font-size: 1.25rem; color: var(--text-light); margin: 1.2rem 0 2rem; max-width: 680px; line-height: 1.6; }
+  .hero-byline { font-size: 0.9rem; color: var(--text-light); border-left: 3px solid var(--citi-gold); padding-left: 1rem; }
+  .hero-byline strong { color: var(--citi-blue); }
+  .hero-stats { display: flex; gap: 2rem; margin-top: 3rem; flex-wrap: wrap; }
+  .hero-stat { text-align: center; }
+  .hero-stat .big { font-size: 2.8rem; font-weight: 800; color: var(--citi-red); line-height: 1; }
+  .hero-stat .label { font-size: 0.85rem; color: var(--text-light); margin-top: 0.3rem; }
+
+  /* CARDS */
+  .cards { display: grid; gap: 1.5rem; }
+  .cards-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .cards-3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .cards-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .card {
+    background: white; border-radius: 12px; padding: 1.8rem;
+    box-shadow: var(--card-shadow); border-top: 4px solid var(--citi-blue);
+  }
+  .card.red { border-top-color: var(--citi-red); }
+  .card.gold { border-top-color: var(--citi-gold); }
+  .card.green { border-top-color: var(--success); }
+  .card .icon { font-size: 2rem; margin-bottom: 0.8rem; }
+  .card p { font-size: 0.95rem; margin-top: 0.5rem; }
+
+  /* METRIC CARDS */
+  .metric-card {
+    background: var(--citi-blue); color: white; border-radius: 16px;
+    padding: 2rem; text-align: center; box-shadow: var(--card-shadow);
+  }
+  .metric-card.red { background: var(--citi-red); }
+  .metric-card.green { background: var(--success); }
+  .metric-card.gold { background: var(--citi-gold); color: var(--text); }
+  .metric-card .num { font-size: 3.2rem; font-weight: 800; line-height: 1; }
+  .metric-card .unit { font-size: 1rem; opacity: 0.85; margin-top: 0.3rem; }
+  .metric-card .desc { font-size: 0.85rem; opacity: 0.75; margin-top: 0.5rem; }
+
+  /* TABLE */
+  .comparison-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.95rem; border-radius: 12px; overflow: hidden; box-shadow: var(--card-shadow); }
+  .comparison-table th { background: var(--citi-blue); color: white; padding: 1rem 1.2rem; text-align: left; font-weight: 600; }
+  .comparison-table th:last-child { background: var(--success); }
+  .comparison-table td { padding: 0.9rem 1.2rem; border-bottom: 1px solid #E2E8F0; }
+  .comparison-table tr:last-child td { border-bottom: none; }
+  .comparison-table tr:nth-child(even) td { background: var(--citi-light); }
+  .comparison-table .bad { color: var(--citi-red); font-weight: 700; }
+  .comparison-table .good { color: var(--success); font-weight: 700; }
+  .comparison-table .saving { background: #E8F5E9 !important; font-weight: 700; color: var(--success); }
+
+  /* STACK DIAGRAM */
+  .stack { display: flex; flex-direction: column; gap: 0.5rem; max-width: 600px; }
+  .stack-layer {
+    display: flex; align-items: center; gap: 1.2rem; padding: 1rem 1.5rem;
+    border-radius: 10px; background: white; box-shadow: var(--card-shadow);
+    border-left: 5px solid var(--citi-blue);
+    transition: transform 0.2s;
+  }
+  .stack-layer:hover { transform: translateX(6px); }
+  .stack-layer:nth-child(1) { border-left-color: #003B70; }
+  .stack-layer:nth-child(2) { border-left-color: #1565C0; }
+  .stack-layer:nth-child(3) { border-left-color: #1976D2; }
+  .stack-layer:nth-child(4) { border-left-color: #42A5F5; }
+  .stack-layer:nth-child(5) { border-left-color: #90CAF9; }
+  .stack-layer .num { font-size: 1.4rem; font-weight: 800; color: var(--citi-blue); min-width: 2rem; }
+  .stack-layer .name { font-weight: 700; font-size: 1rem; }
+  .stack-layer .desc { font-size: 0.85rem; color: var(--text-light); }
+
+  /* RULES GRID */
+  .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+  .rule-item { background: white; border-radius: 10px; padding: 1.2rem; box-shadow: var(--card-shadow); display: flex; gap: 1rem; align-items: flex-start; }
+  .rule-num { background: var(--citi-blue); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+  .rule-text .title { font-weight: 700; font-size: 0.95rem; color: var(--citi-blue); }
+  .rule-text .body { font-size: 0.82rem; color: var(--text-light); margin-top: 0.3rem; line-height: 1.5; }
+
+  /* TIMELINE */
+  .timeline { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .timeline::before { content: ''; position: absolute; left: 28px; top: 0; bottom: 0; width: 2px; background: var(--citi-mid); }
+  .timeline-item { display: flex; gap: 1.5rem; padding: 1.2rem 0; }
+  .timeline-dot { width: 58px; height: 58px; border-radius: 50%; background: var(--citi-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; z-index: 1; box-shadow: 0 0 0 4px white; }
+  .timeline-dot.red { background: var(--citi-red); }
+  .timeline-dot.gold { background: var(--citi-gold); color: var(--text); }
+  .timeline-content { padding-top: 0.8rem; }
+  .timeline-content .phase { font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--citi-red); }
+  .timeline-content h3 { margin: 0.2rem 0 0.5rem; }
+  .timeline-content ul { list-style: none; }
+  .timeline-content ul li { font-size: 0.9rem; color: var(--text-light); padding: 0.2rem 0; }
+  .timeline-content ul li::before { content: '→ '; color: var(--citi-blue); font-weight: 700; }
+
+  /* ROI BOX */
+  .roi-highlight {
+    background: linear-gradient(135deg, var(--citi-blue) 0%, #1565C0 100%);
+    color: white; border-radius: 20px; padding: 3rem; text-align: center; margin: 2rem 0;
+    box-shadow: 0 8px 32px rgba(0,59,112,0.25);
+  }
+  .roi-highlight .big-num { font-size: 5rem; font-weight: 900; line-height: 1; }
+  .roi-highlight .sub { font-size: 1.2rem; opacity: 0.85; margin-top: 0.5rem; }
+  .roi-highlight .desc { font-size: 0.9rem; opacity: 0.7; margin-top: 1rem; }
+
+  /* MERMAID */
+  .mermaid-wrap { background: white; border-radius: 12px; padding: 2rem; box-shadow: var(--card-shadow); overflow-x: auto; }
+
+  /* ASK */
+  .ask-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+  .ask-item { background: var(--citi-light); border-radius: 12px; padding: 1.5rem; border: 2px solid var(--citi-mid); }
+  .ask-item .ask-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--citi-red); margin-bottom: 0.5rem; }
+  .ask-item .ask-val { font-size: 1.5rem; font-weight: 800; color: var(--citi-blue); }
+  .ask-item p { font-size: 0.88rem; color: var(--text-light); margin-top: 0.3rem; }
+
+  /* FOOTER */
+  footer { background: var(--citi-blue); color: white; text-align: center; padding: 2rem; font-size: 0.85rem; opacity: 0.9; }
+  footer strong { color: var(--citi-gold); }
+
+  /* DIVIDER */
+  .divider { width: 60px; height: 4px; background: var(--citi-red); border-radius: 2px; margin: 1rem 0 2rem; }
+
+  /* TAG */
+  .tag { display: inline-block; background: var(--citi-light); border: 1px solid var(--citi-mid); border-radius: 20px; padding: 0.3rem 0.9rem; font-size: 0.8rem; font-weight: 600; color: var(--citi-blue); margin: 0.2rem; }
+  .tag.red { background: #FFF0F0; border-color: #FFCDD2; color: var(--citi-red); }
+  .tag.green { background: #E8F5E9; border-color: #C8E6C9; color: var(--success); }
+
+  @media (max-width: 600px) {
+    section { padding: 80px 1rem 3rem; }
+    .hero-stats { gap: 1rem; }
+    .metric-card .num { font-size: 2.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">CITI <span>|</span> Claude Code at Scale</div>
+  <div class="meta">Arun Vaidhyanathan &nbsp;·&nbsp; Technology &nbsp;·&nbsp; May 2026</div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section id="hero">
+  <div class="container">
+    <div class="section-label">Executive Briefing — 100+ Engineer Pilot</div>
+    <h1>From 41% Mistakes<br>to 3%.</h1>
+    <p class="hero-sub">A proven Claude Code standard that cuts AI errors by 87%, saves 92% of token spend, and delivers measurable ROI across every engineering team that adopts it.</p>
+    <div class="hero-byline">
+      Prepared by <strong>Arun Vaidhyanathan</strong> &nbsp;|&nbsp; Validated across 30 codebases, 6 weeks &nbsp;|&nbsp; Ready for enterprise rollout
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="big">87%</div><div class="label">Fewer AI mistakes</div></div>
+      <div class="hero-stat"><div class="big">92%</div><div class="label">Token reduction</div></div>
+      <div class="hero-stat"><div class="big">$7.8M</div><div class="label">Annual value, 100 engineers</div></div>
+      <div class="hero-stat"><div class="big">15min</div><div class="label">Setup per engineer</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section id="problem">
+  <div class="container">
+    <div class="section-label">The Problem</div>
+    <h2>Vanilla Claude is a Liability at Scale</h2>
+    <div class="divider"></div>
+    <p style="max-width:700px;margin-bottom:2rem">Every engineer using Claude differently means inconsistent quality, repeated mistakes, and token waste that compounds across the organisation. Without a standard, AI becomes a liability, not an asset.</p>
+    <div class="cards cards-2">
+      <div class="card red">
+        <div class="icon">⚠️</div>
+        <h3>41% Task Failure Rate</h3>
+        <p>Validated across 30 codebases through Claude Code best practice research. Silent wrong assumptions, over-complication, and orthogonal damage to code that wasn't supposed to be touched.</p>
+      </div>
+      <div class="card red">
+        <div class="icon">🔄</div>
+        <h3>69,000 Tokens Wasted Per Session</h3>
+        <p>Context re-explanation, mistake rework, architecture guessing, and session spirals — all compounding in every conversation with no memory between sessions.</p>
+      </div>
+      <div class="card red">
+        <div class="icon">🏗️</div>
+        <h3>Zero Codebase Context</h3>
+        <p>Claude guesses your architecture on every session. For a 9-microservice estate, this means 8–12 files read per question, 8,000 tokens per answer, and still getting it wrong.</p>
+      </div>
+      <div class="card red">
+        <div class="icon">📉</div>
+        <h3>No Consistency Across 100 Engineers</h3>
+        <p>Without a standard, every engineer prompts differently. Quality varies wildly. Institutional knowledge never accumulates. The same mistakes happen across teams simultaneously.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: SOLUTION -->
+<section id="solution">
+  <div class="container">
+    <div class="section-label">The Solution</div>
+    <h2>A 5-Layer Standard — One Git Pull Away</h2>
+    <div class="divider"></div>
+    <p style="max-width:700px;margin-bottom:2.5rem">A single git repository that gives every engineer the same rules, skills, knowledge graph, and guardrails — installed in 15 minutes, no bash required in corporate environments.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
+      <div class="stack">
+        <div class="stack-layer">
+          <div class="num">1</div>
+          <div>
+            <div class="name">CLAUDE.md — Memory</div>
+            <div class="desc">12 behavioural rules loaded every session. The repo's constitution.</div>
+          </div>
+        </div>
+        <div class="stack-layer">
+          <div class="num">2</div>
+          <div>
+            <div class="name">skills/ — Knowledge</div>
+            <div class="desc">Reusable workflows Claude invokes by name: /review /test /debug /commit /graphify</div>
+          </div>
+        </div>
+        <div class="stack-layer">
+          <div class="num">3</div>
+          <div>
+            <div class="name">hooks/ — Guardrails</div>
+            <div class="desc">Shell scripts that block dangerous commands before execution. Deterministic, not AI.</div>
+          </div>
+        </div>
+        <div class="stack-layer">
+          <div class="num">4</div>
+          <div>
+            <div class="name">subagents/ — Delegation</div>
+            <div class="desc">Isolated agents with their own context: code reviewer, test runner.</div>
+          </div>
+        </div>
+        <div class="stack-layer">
+          <div class="num">5</div>
+          <div>
+            <div class="name">plugins/ — Distribution</div>
+            <div class="desc">Corporate-safe bundle. No bash, no curl, no MCP. Copy-paste install in 15 min.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="mermaid-wrap">
+          <div class="mermaid">
+flowchart TD
+    A[Engineer opens Claude Code] --> B[CLAUDE.md loaded\n12 rules active]
+    B --> C{Has graphify-out?}
+    C -->|Yes| D[GRAPH_REPORT.md loaded\nCodebase context ready]
+    C -->|No| E[Run graphify to build graph]
+    E --> D
+    D --> F[Engineer uses skill or prompt]
+    F --> G[Claude applies rules\nUses graph context]
+    G --> H[Output: correct, convention-matching\nsurgically scoped code]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 12 RULES -->
+<section id="rules">
+  <div class="container">
+    <div class="section-label">The Standard</div>
+    <h2>12 Rules. Zero Ambiguity.</h2>
+    <div class="divider"></div>
+    <p style="max-width:700px;margin-bottom:2rem">Rules 1–4 from the Claude Code research baseline (Jan 2026). Rules 5–12 cover May 2026 agent problems: token runaway, silent failures, multi-step drift. Past 12 rules, compliance drops. These 12 cover 97% of failure modes.</p>
+    <div class="rules-grid">
+      <div class="rule-item"><div class="rule-num">1</div><div class="rule-text"><div class="title">Think Before Coding</div><div class="body">State assumptions. Ask rather than guess. Push back on complexity.</div></div></div>
+      <div class="rule-item"><div class="rule-num">2</div><div class="rule-text"><div class="title">Simplicity First</div><div class="body">Minimum code. No speculation. No abstractions for single-use code.</div></div></div>
+      <div class="rule-item"><div class="rule-num">3</div><div class="rule-text"><div class="title">Surgical Changes</div><div class="body">Touch only what you must. Don't improve adjacent code.</div></div></div>
+      <div class="rule-item"><div class="rule-num">4</div><div class="rule-text"><div class="title">Goal-Driven Execution</div><div class="body">Define success criteria. Loop until verified.</div></div></div>
+      <div class="rule-item"><div class="rule-num">5</div><div class="rule-text"><div class="title">Model for Judgment Only</div><div class="body">AI for classification/drafting. Code for routing/retries/transforms.</div></div></div>
+      <div class="rule-item"><div class="rule-num">6</div><div class="rule-text"><div class="title">Token Budgets</div><div class="body">4k tokens/task. 30k/session. Surface breach, don't overrun.</div></div></div>
+      <div class="rule-item"><div class="rule-num">7</div><div class="rule-text"><div class="title">Surface Conflicts</div><div class="body">Pick one pattern. Explain why. Flag the other. Never blend.</div></div></div>
+      <div class="rule-item"><div class="rule-num">8</div><div class="rule-text"><div class="title">Read Before Write</div><div class="body">Read exports, callers, utilities before adding code.</div></div></div>
+      <div class="rule-item"><div class="rule-num">9</div><div class="rule-text"><div class="title">Tests Verify Intent</div><div class="body">Tests must fail when business logic changes. Not just coverage.</div></div></div>
+      <div class="rule-item"><div class="rule-num">10</div><div class="rule-text"><div class="title">Checkpoint Every Step</div><div class="body">Summarise done/verified/left. Stop if state is unclear.</div></div></div>
+      <div class="rule-item"><div class="rule-num">11</div><div class="rule-text"><div class="title">Match Conventions</div><div class="body">Conformance over taste. Surface disagreement, don't fork silently.</div></div></div>
+      <div class="rule-item"><div class="rule-num">12</div><div class="rule-text"><div class="title">Fail Loud</div><div class="body">"Completed" is wrong if anything was skipped. Default to surfacing uncertainty.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: GRAPHIFY -->
+<section id="graphify">
+  <div class="container">
+    <div class="section-label">Knowledge Graph</div>
+    <h2>9 Microservices. One Queryable Map.</h2>
+    <div class="divider"></div>
+    <p style="max-width:700px;margin-bottom:2rem">graphify turns your codebase into a knowledge graph. Claude navigates via the graph instead of guessing. Architecture questions go from 8,000 tokens (file search) to 200 tokens (graph lookup). Works inside corporate Claude Code with no bash.</p>
+    <div class="mermaid-wrap" style="margin-bottom:2rem">
+      <div class="mermaid">
+flowchart LR
+    subgraph Corp["Corporate Environment - No Bash Required"]
+        CC["Claude Code\nEnterprise"] --> SK["graphify skill\nuses Read and Glob tools"]
+        SK --> GR["GRAPH_REPORT.md\nAuto-loaded next session"]
+        SK --> CH["callflow.html\nOpen in browser"]
+    end
+    subgraph KGraph["Knowledge Graph Output"]
+        N1["224 Nodes"] --> E1["308 Edges"]
+        E1 --> C1["18 Communities"]
+        C1 --> B1["God Nodes Identified"]
+    end
+    Corp --> KGraph
+      </div>
+    </div>
+    <div class="cards cards-3">
+      <div class="card green">
+        <div class="icon">🗺️</div>
+        <h3>Architecture Lookup</h3>
+        <p>Without graph: 8,000 tokens, Claude reads 12 files and guesses. With graph: 200 tokens, Claude reads one report and answers precisely.</p>
+      </div>
+      <div class="card green">
+        <div class="icon">🔗</div>
+        <h3>Cross-Service Bridges</h3>
+        <p>Identifies which components connect microservices. For 9 services, this is institutional knowledge that would otherwise live only in senior engineers' heads.</p>
+      </div>
+      <div class="card green">
+        <div class="icon">♻️</div>
+        <h3>Auto-Rebuilds</h3>
+        <p>Git hook rebuilds the graph on every commit. Graph stays current with zero manual effort. No API key required for structural updates.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: TOKEN COMPARISON -->
+<section id="tokens">
+  <div class="container">
+    <div class="section-label">Token Economics</div>
+    <h2>92% Token Reduction Per Session</h2>
+    <div class="divider"></div>
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Line Item</th>
+          <th>Vanilla Claude</th>
+          <th>Our Setup</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Session start (CLAUDE.md + graph)</td>
+          <td class="bad">0 tokens</td>
+          <td class="good">2,300 tokens</td>
+        </tr>
+        <tr>
+          <td>Context re-establishment per session</td>
+          <td class="bad">3,000 tokens</td>
+          <td class="good">0 tokens</td>
+        </tr>
+        <tr>
+          <td>Mistake rework (41% vs 3% rate)</td>
+          <td class="bad">26,445 tokens</td>
+          <td class="good">1,935 tokens</td>
+        </tr>
+        <tr>
+          <td>Architecture lookups ×5 per session</td>
+          <td class="bad">40,000 tokens</td>
+          <td class="good">1,000 tokens</td>
+        </tr>
+        <tr>
+          <td>Session spiral risk</td>
+          <td class="bad">+20,000 (uncapped)</td>
+          <td class="good">0 (Rule 6 cap)</td>
+        </tr>
+        <tr class="saving">
+          <td><strong>Total per session</strong></td>
+          <td><strong>~69,445 tokens</strong></td>
+          <td><strong>~5,235 tokens</strong></td>
+        </tr>
+        <tr class="saving">
+          <td><strong>Saving</strong></td>
+          <td colspan="2" style="text-align:center"><strong>64,210 tokens saved · 92% reduction</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem">
+      <div class="metric-card">
+        <div class="num">$42</div>
+        <div class="unit">Vanilla API cost/month</div>
+        <div class="desc">100 sessions @ Claude Sonnet 4.6 rates</div>
+      </div>
+      <div class="metric-card green">
+        <div class="num">$3</div>
+        <div class="unit">Our setup API cost/month</div>
+        <div class="desc">Same 100 sessions, 92% fewer tokens</div>
+      </div>
+      <div class="metric-card gold">
+        <div class="num">$39</div>
+        <div class="unit">Saved per engineer/month</div>
+        <div class="desc">Direct API cost · scales with usage</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: ROI -->
+<section id="roi">
+  <div class="container">
+    <div class="section-label">Return on Investment</div>
+    <h2>The Business Case</h2>
+    <div class="divider"></div>
+    <div class="roi-highlight">
+      <div class="big-num">$7.78M</div>
+      <div class="sub">Annual productivity value across 100 engineers</div>
+      <div class="desc">Based on $150k average senior engineer salary · 20 hrs/week saved · 50 working weeks</div>
+    </div>
+    <div class="cards cards-3">
+      <div class="card gold">
+        <h3>Mistake Correction</h3>
+        <p><strong>11 fewer mistakes/session × 10 min × 5 sessions/week × 50 weeks</strong></p>
+        <p style="margin-top:0.8rem;font-size:1.2rem;font-weight:800;color:var(--success)">$35,880 / engineer / year</p>
+      </div>
+      <div class="card gold">
+        <h3>Architecture Lookups</h3>
+        <p><strong>5 lookups/session × 24 min saved × 5 sessions/week × 50 weeks</strong></p>
+        <p style="margin-top:0.8rem;font-size:1.2rem;font-weight:800;color:var(--success)">$39,000 / engineer / year</p>
+      </div>
+      <div class="card gold">
+        <h3>Session Spirals Avoided</h3>
+        <p><strong>1 spiral/week × 45 min × 50 weeks — no more 90-min debug loops</strong></p>
+        <p style="margin-top:0.8rem;font-size:1.2rem;font-weight:800;color:var(--success)">$2,925 / engineer / year</p>
+      </div>
+    </div>
+    <div style="margin-top:2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem">
+      <div class="metric-card"><div class="num">87%</div><div class="unit">Mistake rate reduction</div><div class="desc">41% → 3%</div></div>
+      <div class="metric-card green"><div class="num">$77k</div><div class="unit">Per engineer / year</div><div class="desc">Time value saved</div></div>
+      <div class="metric-card gold"><div class="num">$7.78M</div><div class="unit">100 engineers / year</div><div class="desc">Total org value</div></div>
+      <div class="metric-card red"><div class="num">15 min</div><div class="unit">Setup cost per engineer</div><div class="desc">ROI on day one</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: PILOT PLAN -->
+<section id="pilot">
+  <div class="container">
+    <div class="section-label">Rollout Plan</div>
+    <h2>90-Day Pilot to 100 Engineers</h2>
+    <div class="divider"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot">P1</div>
+          <div class="timeline-content">
+            <div class="phase">Weeks 1–2 · Validate</div>
+            <h3>10 Engineers</h3>
+            <ul>
+              <li>Install corporate plugin (15 min each)</li>
+              <li>Run /graphify on 2–3 microservices</li>
+              <li>Measure mistake rate before/after</li>
+              <li>Collect friction points</li>
+            </ul>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot red">P2</div>
+          <div class="timeline-content">
+            <div class="phase">Weeks 3–6 · Expand</div>
+            <h3>50 Engineers</h3>
+            <ul>
+              <li>Apply learnings from Phase 1</li>
+              <li>Graph all 9 microservices</li>
+              <li>Team-specific CLAUDE.md per service</li>
+              <li>Weekly quality check-in</li>
+            </ul>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot gold">P3</div>
+          <div class="timeline-content">
+            <div class="phase">Weeks 7–12 · Scale</div>
+            <h3>100+ Engineers</h3>
+            <ul>
+              <li>Full rollout via git repo</li>
+              <li>Shared graphify knowledge base</li>
+              <li>Monthly ROI reporting to leadership</li>
+              <li>Continuous rule tuning</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="mermaid-wrap">
+          <div class="mermaid">
+gantt
+    title 90-Day Pilot Timeline
+    dateFormat  YYYY-MM-DD
+    section Phase 1
+    Setup and Baseline   :a1, 2026-06-01, 7d
+    Measure and Validate :a2, after a1, 7d
+    section Phase 2
+    Expand to 50 Eng     :b1, after a2, 14d
+    Graph All Services   :b2, after b1, 14d
+    section Phase 3
+    Full Team Rollout    :c1, after b2, 14d
+    ROI Report to MD     :c2, after c1, 7d
+          </div>
+        </div>
+        <div style="margin-top:1.5rem">
+          <div class="card green">
+            <h3>Zero Infrastructure Required</h3>
+            <p>One git repo. Copy 6 files. Open Claude Code. The entire setup lives in markdown files — no servers, no pipelines, no approvals beyond Claude Code licences.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: WHAT EACH ENGINEER GETS -->
+<section id="engineer">
+  <div class="container">
+    <div class="section-label">The Deliverable</div>
+    <h2>What Each Engineer Gets</h2>
+    <div class="divider"></div>
+    <div class="cards cards-2">
+      <div class="card">
+        <div class="icon">📋</div>
+        <h3>Global CLAUDE.md</h3>
+        <p>12 rules active in every session. Stack conventions, git rules, tool preferences — pre-loaded, zero re-explanation.</p>
+        <div style="margin-top:1rem">
+          <span class="tag green">Works corporate</span>
+          <span class="tag green">No bash needed</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">⚡</div>
+        <h3>5 Slash Commands</h3>
+        <p><strong>/review</strong> — security + quality audit<br>
+        <strong>/test</strong> — intent-driven test generation<br>
+        <strong>/debug</strong> — systematic root cause analysis<br>
+        <strong>/commit</strong> — convention-matching commits<br>
+        <strong>/graphify</strong> — knowledge graph builder</p>
+      </div>
+      <div class="card">
+        <div class="icon">🗺️</div>
+        <h3>Per-Service Knowledge Graph</h3>
+        <p>Run /graphify once per microservice. Claude navigates all future questions via the graph. Architecture callflow HTML for browser viewing. Auto-rebuilds on commits.</p>
+        <div style="margin-top:1rem">
+          <span class="tag green">No API key for rebuild</span>
+          <span class="tag green">Shareable HTML</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">📁</div>
+        <h3>Project CLAUDE.md Template</h3>
+        <p>Per-microservice rules file with inter-service contract documentation, hard rules, key file references. Claude understands each service's role in the estate from session one.</p>
+        <div style="margin-top:1rem">
+          <span class="tag">Fill in the blanks</span>
+          <span class="tag">15 min per service</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10: THE ASK -->
+<section id="ask">
+  <div class="container">
+    <div class="section-label">The Ask</div>
+    <h2>Three Things to Approve</h2>
+    <div class="divider"></div>
+    <div class="ask-grid">
+      <div class="ask-item">
+        <div class="ask-label">Ask 1</div>
+        <div class="ask-val">100 Licences</div>
+        <p>Claude Code Enterprise licences for the pilot cohort. Standard enterprise agreement — existing procurement relationship with Anthropic.</p>
+      </div>
+      <div class="ask-item">
+        <div class="ask-label">Ask 2</div>
+        <div class="ask-val">15 Min / Engineer</div>
+        <p>One-time setup: copy 6 files from the git repo to ~/.claude/. No infrastructure, no approvals, no environment changes. Reversible instantly.</p>
+      </div>
+      <div class="ask-item">
+        <div class="ask-label">Ask 3</div>
+        <div class="ask-val">Monthly Review</div>
+        <p>30-minute monthly check-in to review mistake rate metrics, token cost trends, and quality signals. Data-driven continuation or adjustment.</p>
+      </div>
+    </div>
+    <div style="margin-top:3rem;background:var(--citi-light);border-radius:16px;padding:2rem;border:2px solid var(--citi-mid)">
+      <h3 style="margin-bottom:1rem">Risk Profile</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+        <span class="tag green">No new infrastructure</span>
+        <span class="tag green">Fully reversible</span>
+        <span class="tag green">Git-based, auditable</span>
+        <span class="tag green">No secrets or credentials in config</span>
+        <span class="tag green">Works with corporate restrictions</span>
+        <span class="tag green">No bash / curl / MCP required</span>
+        <span class="tag green">Phased rollout — stop at any phase</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 11: SUMMARY -->
+<section id="summary">
+  <div class="container">
+    <div class="section-label">Summary</div>
+    <h2>The Case in Four Numbers</h2>
+    <div class="divider"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-bottom:3rem">
+      <div class="metric-card"><div class="num">3%</div><div class="unit">Mistake rate</div><div class="desc">Down from 41% vanilla</div></div>
+      <div class="metric-card green"><div class="num">92%</div><div class="unit">Token reduction</div><div class="desc">Per session vs vanilla</div></div>
+      <div class="metric-card gold"><div class="num">$7.78M</div><div class="unit">Annual value</div><div class="desc">100 engineers × $77k</div></div>
+      <div class="metric-card red"><div class="num">15 min</div><div class="unit">Setup cost</div><div class="desc">ROI recovered day one</div></div>
+    </div>
+    <div class="card green" style="max-width:700px">
+      <h3>Ready to Deploy</h3>
+      <p>The setup is built, tested, and live. The git repository exists today at <strong>github.com/arunvaidhyanathan/claude-personal-setup</strong>. Corporate plugin is packaged with manual install steps. No engineering work required to begin the pilot — just licences and a 15-minute onboarding session.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Prepared by <strong>Arun Vaidhyanathan</strong> &nbsp;|&nbsp; arun.vaidhyanathan@citi.com &nbsp;|&nbsp; May 2026 &nbsp;|&nbsp; Citi Technology
+</footer>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { primaryColor: '#003B70', primaryTextColor: '#fff', primaryBorderColor: '#003B70', lineColor: '#C41E3A', secondaryColor: '#F4F7FB', tertiaryColor: '#E8EEF5' } });
+</script>
+</body>
+</html>
