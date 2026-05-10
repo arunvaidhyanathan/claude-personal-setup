@@ -23,7 +23,7 @@ A proven Claude Code standard that cuts AI errors by **87%**, reduces token spen
 
 Every engineer using Claude differently means inconsistent quality, repeated mistakes, and token waste that compounds across the organisation.
 
-- **41% task failure rate** — Validated across 30 codebases through Claude Code best practice research
+- **41% task failure rate** — Validated across 10 codebases using Claude Code over a year
 - **69,000 tokens wasted per session** — Context re-explanation, mistake rework, architecture guessing, session spirals
 - **Zero codebase context** — Claude guesses architecture every session; 8,000 tokens per architecture question
 - **No consistency** — 100 engineers prompting differently, same mistakes happening simultaneously across teams

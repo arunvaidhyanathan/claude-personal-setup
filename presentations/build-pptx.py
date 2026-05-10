@@ -116,7 +116,7 @@ txbox(s1, "Arun Vaidhyanathan  ·  arun.vaidhyanathan@citi.com  ·  Citi Technol
 # ─────────────────────────────────────────────
 s2 = add_slide()
 rect(s2, 0, 0, 13.33, 7.5, fill=LIGHT_GREY)
-header_bar(s2, "The Problem", "Vanilla Claude is a liability at scale — measured across 30 codebases")
+header_bar(s2, "The Problem", "Vanilla Claude is a liability at scale — validated across 10 codebases, 1 year of Claude Code")
 
 problems = [
     ("41%\nTask Failure", "Validated via Claude Code research (Jan 2026). Silent\nassumptions, over-complication, orthogonal damage."),
